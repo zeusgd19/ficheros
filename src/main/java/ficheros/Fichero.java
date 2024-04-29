@@ -2,10 +2,7 @@ package ficheros;
 
 import java.io.File;
 import java.text.DateFormat;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Locale;
-import java.util.Scanner;
+import java.util.*;
 
 public class Fichero {
     public static void main(String[] args) {
@@ -14,13 +11,25 @@ public class Fichero {
         System.out.println("-------------------------------------------");
         System.out.println("LISTA DE FICHEROS Y DIRECTORIOS DEL SISTEMA");
         System.out.println("-------------------------------------------");
-        list(f);
-        int option = sc.nextInt();
-        while (option != -1){
-            f = move(f,option);
-            list(f);
-            option= sc.nextInt();
-        }
+        int option = 0;
+        do{
+            try {
+                list(f);
+            } catch (NullPointerException npe){
+                System.out.println("No tienes permisos o el directorio es nulo");
+                f = move(f,0);
+                list(f);
+            }
+            try {
+                option = sc.nextInt();
+                if(option != -1) {
+                    f = move(f, option);
+                }
+            } catch (InputMismatchException imme){
+                System.out.println("Introduzca solo números");
+                sc.nextLine();
+            }
+        } while (option != -1);
     }
 
     public static void list(File f){
@@ -30,39 +39,48 @@ public class Fichero {
         String permisosFile = "----";
         DateFormat formatter;
         formatter = DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.MEDIUM, Locale.getDefault());
-        for (File fi : f.listFiles()){
-            if(fi.isDirectory()){
-                if(fi.canRead() && fi.canWrite() && fi.canExecute()){
-                    permisosDir = "drwx";
-                } else if(fi.canRead()){
-                    permisosDir = "dr--";
-                } else if(fi.canWrite()){
-                    permisosDir = "d-w-";
-                } else if(fi.canExecute()){
-                    permisosDir = "d--x";
+            for (File fi : f.listFiles()) {
+                if (fi.isDirectory()) {
+                    if (fi.canRead() && fi.canWrite() && fi.canExecute()) {
+                        permisosDir = "drwx";
+                    } else if (fi.canRead()) {
+                        permisosDir = "dr--";
+                    } else if (fi.canWrite()) {
+                        permisosDir = "d-w-";
+                    } else if (fi.canExecute()) {
+                        permisosDir = "d--x";
+                    }
+                    System.out.println(i + "\t\t" + permisosDir + "\t\t" + fi.length() / 1024 + "MB " + "\t\t" + formatter.format(fi.lastModified()) + "\t" + fi.getName() + " <Directoio>");
+                } else {
+                    if (fi.canRead() && fi.canWrite() && fi.canExecute()) {
+                        permisosFile = "-rwx";
+                    } else if (fi.canRead()) {
+                        permisosFile = "-r--";
+                    } else if (fi.canWrite()) {
+                        permisosFile = "--w-";
+                    } else if (fi.canExecute()) {
+                        permisosFile = "---x";
+                    }
+                    System.out.println(i + "\t\t" + permisosFile + "\t\t" + fi.length() / 1024 + "MB " + "\t\t" + formatter.format(fi.lastModified()) + "\t" + fi.getName() + " <Archivo>");
                 }
-                System.out.println(i + "\t\t" + permisosDir + "\t\t" +  fi.length() / 1024 + "MB " + "\t\t" + formatter.format(fi.lastModified()) + "\t" +  fi.getName() + " <Directoio>");
-            } else {
-                if(fi.canRead() && fi.canWrite() && fi.canExecute()){
-                    permisosFile = "-rwx";
-                } else if(fi.canRead()){
-                    permisosFile = "-r--";
-                } else if(fi.canWrite()){
-                    permisosFile = "--w-";
-                } else if(fi.canExecute()){
-                    permisosFile = "---x";
-                }
-                System.out.println(i + "\t\t" + permisosFile + "\t\t" + fi.length() / 1024 + "MB " + "\t\t" + formatter.format(fi.lastModified()) + "\t" +  fi.getName() + " <Archivo>");
+                i++;
             }
-            i++;
-        }
         System.out.println("A que directorio te quiere mover: ");
     }
 
     public static File move(File f, int mv) {
         if(mv == 0){
-            return f.getParentFile();
+            if(f.getParentFile() != null) {
+                return f.getParentFile();
+            } else {
+                return f;
+            }
         }
-        return f.listFiles()[mv - 1].isFile() ? f:f.listFiles()[mv -1];
+        try {
+            return f.listFiles()[mv - 1].isFile() ? f : f.listFiles()[mv - 1];
+        } catch (IndexOutOfBoundsException ioobe){
+            System.out.println("Selccione un directorio, tiene que estar dentro de la lista");
+        }
+        return f;
     }
 }
