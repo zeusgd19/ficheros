@@ -18,8 +18,14 @@ public class Fichero {
             try {
                 option = sc.nextInt();
                 if(option != -1) {
-                    if(f.listFiles()[option - 1].canRead()) {
-                        f = move(f, option);
+                    try {
+                        if(option == 0){
+                            f = move(f,option);
+                        } else if (f.listFiles()[option - 1].canRead()) {
+                            f = move(f, option);
+                        }
+                    }catch (ArrayIndexOutOfBoundsException aioobe){
+                        System.out.println("Elige un directorio valido");
                     }
                 }
             } catch (InputMismatchException imme){
@@ -37,6 +43,7 @@ public class Fichero {
             for (File fi : f.listFiles()) {
                 String permisosDir = "d---";
                 String permisosFile = "----";
+
                 if (fi.isDirectory()) {
                     if (fi.canRead() && fi.canWrite() && fi.canExecute()) {
                         permisosDir = "drwx";
@@ -71,8 +78,8 @@ public class Fichero {
         }
         try {
             return f.listFiles()[mv - 1].isFile() ? f : f.listFiles()[mv - 1];
-        } catch (IndexOutOfBoundsException ioobe){
-            System.out.println("Selccione un directorio, tiene que estar dentro de la lista");
+        } catch (ArrayIndexOutOfBoundsException aioobe){
+            System.out.println("No existe el directorio");
         }
         return f;
     }
