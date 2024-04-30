@@ -1,29 +1,26 @@
 package ficheros;
 
 import java.io.File;
+import java.io.IOException;
 import java.text.DateFormat;
 import java.util.*;
 
 public class Fichero {
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
         Scanner sc = new Scanner(System.in);
         File f = File.listRoots()[0];
-        System.out.println("-------------------------------------------");
-        System.out.println("LISTA DE FICHEROS Y DIRECTORIOS DEL SISTEMA");
-        System.out.println("-------------------------------------------");
         int option = 0;
         do{
-            try {
-                list(f);
-            } catch (NullPointerException npe){
-                System.out.println("No tienes permisos o el directorio es nulo");
-                f = move(f,0);
-                list(f);
-            }
+            System.out.println("-------------------------------------------");
+            System.out.println("LISTA DE FICHEROS Y DIRECTORIOS DEL DIRECTORIO : " + f.getCanonicalPath());
+            System.out.println("-------------------------------------------");
+            list(f);
             try {
                 option = sc.nextInt();
                 if(option != -1) {
-                    f = move(f, option);
+                    if(f.listFiles()[option - 1].canRead()) {
+                        f = move(f, option);
+                    }
                 }
             } catch (InputMismatchException imme){
                 System.out.println("Introduzca solo números");
@@ -35,11 +32,11 @@ public class Fichero {
     public static void list(File f){
         int i = 1;
         System.out.println("0 DIRECTORIO PADRE <DIRECTORIO>");
-        String permisosDir = "d---";
-        String permisosFile = "----";
         DateFormat formatter;
         formatter = DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.MEDIUM, Locale.getDefault());
             for (File fi : f.listFiles()) {
+                String permisosDir = "d---";
+                String permisosFile = "----";
                 if (fi.isDirectory()) {
                     if (fi.canRead() && fi.canWrite() && fi.canExecute()) {
                         permisosDir = "drwx";
@@ -70,11 +67,7 @@ public class Fichero {
 
     public static File move(File f, int mv) {
         if(mv == 0){
-            if(f.getParentFile() != null) {
-                return f.getParentFile();
-            } else {
-                return f;
-            }
+            return f.getParentFile() != null ? f.getParentFile() : f;
         }
         try {
             return f.listFiles()[mv - 1].isFile() ? f : f.listFiles()[mv - 1];
